@@ -19,12 +19,24 @@ router.get("/", async function(req, res, next) {
 router.get("/:code", async function(req, res, next) {
   const code = req.params.code;
   const results = await db.query(
-    "SELECT code, name, description FROM companies WHERE id = $1", [code])
+    "SELECT code, name, description FROM companies WHERE code = $1", [code])
+  
   const company = results.rows[0];
 
-  if(!company) {
-    throw new NotFoundError(`No matching company: ${code}`)
-  }
+  if(!company) throw new NotFoundError(`No matching company: ${code}`);
+
+  const invoiceResults = await db.query(
+    `SELECT id 
+    FROM invoices
+    WHERE comp_code = $1
+    `,
+    [code]
+  )
+  
+  let mapInvoiceResults = invoiceResults.rows.map(r => r.id);
+
+  company.invoices = mapInvoiceResults;
+
   return res.json({ company })
 });
 
