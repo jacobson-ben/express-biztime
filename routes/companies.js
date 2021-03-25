@@ -36,7 +36,9 @@ router.post("/", async function(req, res, next) {
         VALUES ($1, $2)
         RETURNING code, name, despription`, [req.body.name, req.body.description])
   const company = results.rows[0];
-
+  if(!company) {
+    throw new NotFoundError(`Unable to add company: ${code}`)
+  }
   return res.status(201).json({ company })
 });
 
